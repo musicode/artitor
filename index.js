@@ -5,11 +5,25 @@
 
     var KEY_CODE_ENTER = 13;
 
-    function Artitor(element, content) {
+    /**
+     *
+     * @param {Object} options
+     * @property {HTMLElement} options.element
+     * @property {string} options.content
+     * @property {string} options.placeholder
+     * @property {Function} options.onContentChange
+     */
+    function Artitor(options) {
 
         var me = this;
+        var element = options.element;
+
+        me.options = options;
         me.element = element;
-        me.setContent(content);
+        me.setContent(options.content);
+        if (options.placeholder) {
+            me.setPlaceholder(options.placeholder);
+        }
 
         element.addEventListener(
             'keydown',
@@ -38,6 +52,13 @@
             }
         );
 
+        element.addEventListener(
+            'input',
+            me.onInput = function () {
+                me.onContentChange();
+            }
+        );
+
     }
 
     Artitor.prototype = {
@@ -47,6 +68,7 @@
         destory: function () {
             this.element.removeEventListener('keydown', this.onKeydown);
             this.element.removeEventListener('paste', this.onPaste);
+            this.element.removeEventListener('input', this.onInput);
         },
 
         /**
@@ -84,7 +106,7 @@
             if (this.currentSelection) {
                 var selection = window.getSelection();
                 selection.removeAllRanges();
-                selection.addRange(currentSelection);
+                selection.addRange(this.currentSelection);
             }
         },
 
@@ -105,12 +127,30 @@
             this.element.blur();
         },
 
+        onContentChange: function () {
+            this.element.setAttribute('empty', this.isEmpty() ? '1' : '0');
+            var onContentChange = this.options.onContentChange;
+            if (onContentChange) {
+                onContentChange();
+            }
+        },
+
+        isEmpty: function () {
+            var content = this.getContent();
+            return content === '' || content === '<br>';
+        },
+
         getContent: function () {
             return this.element.innerHTML;
         },
 
         setContent: function (content) {
-            this.element.innerHTML = content || '<br>';
+            var element = this.element
+            if (!content) {
+                content = '<br>';
+            }
+            element.innerHTML = content;
+            element.setAttribute('empty', this.isEmpty() ? '1' : '0');
         },
 
         getPlaceholder: function () {
@@ -149,6 +189,8 @@
             if (node.scrollIntoView) {
                 node.scrollIntoView();
             }
+
+            this.onContentChange();
 
         },
 

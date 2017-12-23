@@ -308,10 +308,15 @@
           line-height: 1.6;
           min-height: 500px;
           outline: 1px solid #ccc;
+          position: relative;
+          padding: 14px;
       }
-      #editor[placeholder]:empty:before {
+      #editor[placeholder][empty="1"]:before {
           content: attr(placeholder);
-          opacity: .28;
+          opacity: 0.2;
+          position: absolute;
+          left: 14px;
+          top: 14px;
       }
       img {
           display: block;
@@ -328,8 +333,10 @@
   <script src="./index.js"></script>
   <script>
 
-      var editor = new Artitor(document.getElementById('editor'));
-
+      var editor = new Artitor({
+          element: document.getElementById('editor'),
+          placeholder: '请输入...',
+      });
 
   </script>
 </body>
