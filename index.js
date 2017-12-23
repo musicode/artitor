@@ -190,4 +190,4 @@
 
     global.Artitor = Artitor;
 
-})(this)
+})(this);
