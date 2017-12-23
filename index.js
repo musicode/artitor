@@ -145,7 +145,10 @@
             }
             selection.setStartAfter(node);
             selection.setEndAfter(node);
-            node.scrollIntoView();
+
+            if (node.scrollIntoView) {
+                node.scrollIntoView();
+            }
 
         },
 
