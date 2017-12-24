@@ -186,10 +186,6 @@
             selection.setStartAfter(node);
             selection.setEndAfter(node);
 
-            if (node.scrollIntoView) {
-                node.scrollIntoView();
-            }
-
             this.onContentChange();
 
         },
@@ -205,6 +201,7 @@
             img.id = id;
             img.src = url;
             this.insertNode(img);
+            img.scrollIntoView();
         },
 
         /**
