@@ -5,6 +5,8 @@
 
     var KEY_CODE_ENTER = 13;
 
+    var EMPTY_VALUE = '\u200B';
+
     /**
      *
      * @param {Object} options
@@ -32,7 +34,8 @@
                 if (keyCode === KEY_CODE_ENTER) {
                     event.preventDefault();
                     me.insertNode(
-                        document.createElement('br')
+                        document.createTextNode(''),
+                        true
                     );
                 }
             }
@@ -161,32 +164,79 @@
             this.element.setAttribute('placeholder', placeholder);
         },
 
-        insertNode: function (node) {
-            var selection = this.getSelection();
+        insertNode: function (node, isBreakline) {
+            var me = this;
+            var selection = me.getSelection();
+
             if (!selection) {
-                this.focus();
-                selection = this.getSelection();
+                me.focus();
+                selection = me.getSelection();
             }
+
+            var deleteSelected = function () {
+                if (!inTextNode && me.getContent() === '<br>') {
+                    selection.selectNode(
+                        me.element.getElementsByTagName('br')[0]
+                    );
+                }
+                selection.deleteContents();
+            };
 
             var inTextNode = selection.commonAncestorContainer.nodeType === NODE_TYPE_TEXT;
-            if (!inTextNode && this.getContent() === '<br>') {
-                selection.selectNode(
-                    this.element.getElementsByTagName('br')[0]
-                );
+
+            var textNode;
+
+            var startContainer = selection.startContainer;
+            if (selection.collapsed
+                && startContainer.nodeType === NODE_TYPE_TEXT
+                && startContainer.nodeValue === EMPTY_VALUE
+            ) {
+                textNode = startContainer;
+                if (inTextNode) {
+                    var currentNode = textNode.previousSibling;
+                    var previousSibling;
+                    while (currentNode) {
+                        previousSibling = currentNode.previousSibling;
+                        if (currentNode.nodeType === NODE_TYPE_TEXT
+                            && currentNode.nodeValue === ''
+                        ) {
+                            currentNode.parentNode.removeChild(currentNode);
+                        }
+                        else if (currentNode.nodeType === NODE_TYPE_ELEMENT) {
+                            if (!isBreakline) {
+                                inTextNode = false;
+                            }
+                            break;
+                        }
+                        currentNode = previousSibling;
+                    }
+                }
+                deleteSelected();
+            }
+            else {
+                textNode = document.createTextNode(EMPTY_VALUE);
+                deleteSelected();
+                selection.insertNode(textNode);
             }
 
-            selection.deleteContents();
-            selection.insertNode(node);
+            textNode.parentNode.insertBefore(node, textNode);
+
             if (inTextNode) {
-                node.parentNode.insertBefore(
+                textNode.parentNode.insertBefore(
                     document.createElement('br'),
                     node
                 );
             }
-            selection.setStartAfter(node);
-            selection.setEndAfter(node);
 
-            this.onContentChange();
+            var range = document.createRange();
+            range.setStart(textNode, 1);
+            range.setEnd(textNode, 1);
+
+            var selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            me.onContentChange();
 
         },
 
