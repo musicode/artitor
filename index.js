@@ -7,6 +7,18 @@
 
     var EMPTY_VALUE = '\u200B';
 
+    var unsupportedPasteTags = [
+        'span',
+        'form', 'input', 'button',
+        'li', 'ul', 'ol',
+        'dl', 'dt', 'dd',
+        'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'col', 'colgroup',
+        'b', 'i', 'u', 'em', 'wbr', 'strong', 'hr', 'cite', 'pre', 'code', 'font', 'big', 'small', 'blockquote', 'address',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'img', 'video', 'audio', 'embed', 'canvas',
+        'a', 'meta', 'link', 'iframe', 'frame'
+    ];
+
     /**
      *
      * @param {Object} options
@@ -46,11 +58,25 @@
             me.onPaste = function (event) {
                 event.preventDefault();
                 var clipboard = event.clipboardData;
-                var text = clipboard.getData('text/plain');
+                var text = clipboard.getData('text/html');
                 if (text) {
-                    me.insertNode(
-                        document.createTextNode(text)
+
+                    text = text.replace(/<(\w+) [^>]+>/gi, '<$1>')
+
+                    unsupportedPasteTags.forEach(
+                        function (tag) {
+                            text = text.replace(
+                                new RegExp('</?' + tag + '>', 'gi'),
+                                ''
+                            );
+                        }
                     );
+
+                    if (text) {
+                        var div = document.createElement('div');
+                        div.innerHTML = text;
+                        me.insertNode(div);
+                    }
                 }
             }
         );
