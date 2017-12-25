@@ -111,7 +111,7 @@
                     var content = pasteReadHolder.innerHTML;
 
                     // 去掉属性，保证接下来处理的是干净的标签
-                    content = content.replace(/<(\w+)(\/| [^>]+)>/g, '<$1>');
+                    content = content.replace(new RegExp('<(\\w+)(\\/| [^>]+)>', 'g'), '<$1>');
 
                     // 只支持 div br
                     content = content.replace(new RegExp('<(\\/?)(\\w+)>', 'g'), function ($0, $1, $2) {
