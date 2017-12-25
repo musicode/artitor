@@ -113,26 +113,25 @@
                     // 去掉属性，保证接下来处理的是干净的标签
                     content = content.replace(/<(\w+) [^>]+>/g, '<$1>');
 
-                    // 只支持 div br p
-                    content = content.replace(new RegExp('<\\/?\\w+>', 'g'), function ($0) {
-                        $0 = $0.toLowerCase();
+                    // 只支持 div br
+                    content = content.replace(new RegExp('<(\\/?)(\\w+)>', 'g'), function ($0, $1, $2) {
 
-                        var tag;
-                        if ($0.indexOf('/') === 1) {
-                            tag = $0.slice(2, -1);
-                        }
-                        else {
-                            tag = $0.slice(1, -1);
+                        $2 = $2.toLowerCase();
+
+                        if ($2 === 'div' || $2 === 'br') {
+                            return '<' + $1 + $2 + 'div>';
                         }
 
-                        return tag === 'div' || tag === 'br' || tag === 'p'
-                            ? $0
-                            : '';
+                        // 避免 p 的上下边距
+                        if ($2 === 'p') {
+                            return '<' + $1 + 'div>';
+                        }
+                        return '';
+
                     });
 
                     // 去掉空标签
                     content = content.replace(new RegExp('<div>\\s*<\\/div>', 'g'), '<br>');
-                    content = content.replace(new RegExp('<p>\\s*<\\/p>', 'g'), '<br>');
 
                     if (content) {
                         var div = document.createElement('div');
