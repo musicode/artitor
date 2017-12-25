@@ -114,7 +114,7 @@
                     content = content.replace(/<(\w+) [^>]+>/g, '<$1>');
 
                     // 只支持 div br
-                    content = content.replace(new RegExp('<(\\/?)(\\w+)>', 'g'), function ($0, $1, $2) {
+                    content = content.replace(new RegExp('<(\\/?)(\\w+)( ?\\/)?>', 'g'), function ($0, $1, $2) {
 
                         $2 = $2.toLowerCase();
 
