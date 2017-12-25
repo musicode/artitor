@@ -111,10 +111,10 @@
                     var content = pasteReadHolder.innerHTML;
 
                     // 去掉属性，保证接下来处理的是干净的标签
-                    content = content.replace(new RegExp('<(\\w+)(\\/| [^>]+)>', 'g'), '<$1>');
+                    content = content.replace(/<(\w+)(\/| [^>]+)>/g, '<$1>');
 
                     // 只支持 div br
-                    content = content.replace(new RegExp('<(\\/?)(\\w+)>', 'g'), function ($0, $1, $2) {
+                    content = content.replace(/<(\/?)(\w+)>/g, function ($0, $1, $2) {
 
                         $2 = $2.toLowerCase();
 
@@ -131,7 +131,7 @@
                     });
 
                     // 去掉空标签
-                    content = content.replace(new RegExp('<div>\\s*<\\/div>', 'g'), '<br>');
+                    content = content.replace(/<div>\s*<\/div>/g, '<br>');
 
                     if (content) {
                         var div = document.createElement('div');
@@ -256,7 +256,14 @@
         },
 
         getContent: function () {
-            return this.element.innerHTML;
+            var content = this.element.innerHTML;
+            if (content) {
+                content = content.replace(
+                    / style="[^"]+"/g,
+                    ''
+                );
+            }
+            return content;
         },
 
         setContent: function (content) {
