@@ -50,10 +50,10 @@
                 if (text) {
 
                     // 去掉属性，保证接下来处理的是干净的标签
-                    text = text.replace(/<(\w+) [^>]+>/gi, '<$1>');
+                    text = text.replace(/<(\w+) [^>]+>/g, '<$1>');
 
                     // 只支持 div br p
-                    text = text.replace(/<\/?(\w+)>/g, function ($0) {
+                    text = text.replace(new RegExp('<\\/?\\w+>', 'g'), function ($0) {
                         $0 = $0.toLowerCase();
 
                         var tag;
@@ -71,13 +71,21 @@
                     });
 
                     // 去掉空标签
-                    text = text.replace(/<div>\s*<\/div>/, '<br>');
-                    text = text.replace(/<p>\s*<\/p>/, '<br>');
+                    text = text.replace(new RegExp('<div>\\s*<\\/div>', 'g'), '<br>');
+                    text = text.replace(new RegExp('<p>\\s*<\\/p>', 'g'), '<br>');
 
                     if (text) {
                         var div = document.createElement('div');
                         div.innerHTML = text;
                         me.insertNode(div);
+                    }
+                }
+                else {
+                    text = clipboard.getData('text/plain');
+                    if (text) {
+                        me.insertNode(
+                            document.createTextNode(text)
+                        );
                     }
                 }
             }
