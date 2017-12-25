@@ -7,6 +7,19 @@
 
     var EMPTY_VALUE = '\u200B';
 
+    var bodyElement = document.body;
+
+    /**
+     * 设置全局的选区
+     *
+     * @param {Range} range
+     */
+    function setRange(range) {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
     /**
      *
      * @param {Object} options
@@ -41,19 +54,63 @@
             }
         );
 
+        var pasteReadTimer;
+        var pasteReadHolder;
+
         element.addEventListener(
             'paste',
             me.onPaste = function (event) {
-                event.preventDefault();
-                var clipboard = event.clipboardData;
-                var text = clipboard.getData('text/html');
-                if (text) {
+
+                me.saveSelection();
+
+                if (pasteReadTimer) {
+                    clearTimeout(pasteReadTimer);
+                    pasteReadTimer = null;
+                }
+
+                if (pasteReadHolder) {
+                    pasteReadHolder.innerHTML = '';
+                }
+                else {
+                    pasteReadHolder = document.createElement('div');
+                    pasteReadHolder.style.cssText = 'position: absolute;top: 0; left: 0;opacity: 0;';
+                    pasteReadHolder.contentEditable = true;
+                    bodyElement.appendChild(pasteReadHolder);
+                }
+
+                var range = document.createRange();
+                range.setStart(pasteReadHolder, 0);
+
+                setRange(range);
+
+                var tryCount = 0;
+                var maxTryCount = 3;
+
+                var processContent = function () {
+
+                    // 先去掉一些字符串不好操作的元素
+                    [
+                        'script',
+                        'noscript',
+                        'style',
+                        'form',
+                    ]
+                    .forEach(
+                        function (tag) {
+                            var nodes = pasteReadHolder.querySelectorAll(tag);
+                            for (var i = nodes.length - 1; i >= 0; i--) {
+                                nodes[i].parentNode.removeChild(nodes[i]);
+                            }
+                        }
+                    );
+
+                    var content = pasteReadHolder.innerHTML;
 
                     // 去掉属性，保证接下来处理的是干净的标签
-                    text = text.replace(/<(\w+) [^>]+>/g, '<$1>');
+                    content = content.replace(/<(\w+) [^>]+>/g, '<$1>');
 
                     // 只支持 div br p
-                    text = text.replace(new RegExp('<\\/?\\w+>', 'g'), function ($0) {
+                    content = content.replace(new RegExp('<\\/?\\w+>', 'g'), function ($0) {
                         $0 = $0.toLowerCase();
 
                         var tag;
@@ -67,27 +124,45 @@
                         return tag === 'div' || tag === 'br' || tag === 'p'
                             ? $0
                             : '';
-
                     });
 
                     // 去掉空标签
-                    text = text.replace(new RegExp('<div>\\s*<\\/div>', 'g'), '<br>');
-                    text = text.replace(new RegExp('<p>\\s*<\\/p>', 'g'), '<br>');
+                    content = content.replace(new RegExp('<div>\\s*<\\/div>', 'g'), '<br>');
+                    content = content.replace(new RegExp('<p>\\s*<\\/p>', 'g'), '<br>');
 
-                    if (text) {
+                    if (content) {
                         var div = document.createElement('div');
-                        div.innerHTML = text;
-                        me.insertNode(div);
+                        div.innerHTML = content;
+                        me.restoreSelection();
+                        me.insertNode(div.childNodes);
                     }
-                }
-                else {
-                    text = clipboard.getData('text/plain');
-                    if (text) {
-                        me.insertNode(
-                            document.createTextNode(text)
+
+                };
+
+                var readContent = function () {
+                    if (pasteReadHolder.textContent) {
+                        processContent();
+                        bodyElement.removeChild(pasteReadHolder);
+                    }
+                    else {
+                        pasteReadTimer = setTimeout(
+                            function () {
+                                pasteReadTimer = null;
+                                if (tryCount < maxTryCount) {
+                                    readContent();
+                                    tryCount++;
+                                }
+                                else {
+                                    bodyElement.removeChild(pasteReadHolder);
+                                }
+                            },
+                            50
                         );
                     }
-                }
+                };
+
+                readContent();
+
             }
         );
 
@@ -143,9 +218,7 @@
          */
         restoreSelection: function () {
             if (this.currentSelection) {
-                var selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(this.currentSelection);
+                setRange(this.currentSelection);
             }
         },
 
@@ -255,12 +328,23 @@
                 selection.insertNode(textNode);
             }
 
-            textNode.parentNode.insertBefore(node, textNode);
+            if (node.nodeType) {
+                node = [ node ];
+            }
+
+            var currentNode = textNode;
+            var parentNode = currentNode.parentNode;
+
+            for (var i = node.length - 1, tempNode; tempNode = node[i]; i--) {
+                parentNode.insertBefore(tempNode, currentNode);
+                currentNode = tempNode;
+            }
+
 
             if (inTextNode) {
                 textNode.parentNode.insertBefore(
                     document.createElement('br'),
-                    node
+                    currentNode
                 );
             }
 
@@ -268,9 +352,7 @@
             range.setStart(textNode, 1);
             range.setEnd(textNode, 1);
 
-            var selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
+            setRange(range);
 
             me.onContentChange();
 
