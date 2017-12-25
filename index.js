@@ -61,8 +61,17 @@
                 var text = clipboard.getData('text/html');
                 if (text) {
 
-                    text = text.replace(/<(\w+) [^>]+>/gi, '<$1>')
+                    // 去掉属性，保证接下来处理的是干净的标签
+                    text = text.replace(/<(\w+) [^>]+>/gi, '<$1>');
 
+                    var emptyTag = /<(\w+)>\s*<\/\1>/;
+
+                    // 去掉空标签
+                    while (emptyTag.test(text)) {
+                        text = text.replace(emptyTag, '');
+                    }
+
+                    // 去掉不支持的标签
                     unsupportedPasteTags.forEach(
                         function (tag) {
                             text = text.replace(
