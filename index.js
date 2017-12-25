@@ -90,9 +90,13 @@
 
                     // 先去掉一些字符串不好操作的元素
                     [
-                        'script',
                         'noscript',
+                        'script',
+                        'object',
                         'style',
+                        'video',
+                        'audio',
+                        'embed',
                         'form',
                     ]
                     .forEach(
