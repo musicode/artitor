@@ -7,18 +7,6 @@
 
     var EMPTY_VALUE = '\u200B';
 
-    var unsupportedPasteTags = [
-        'span',
-        'form', 'input', 'button',
-        'li', 'ul', 'ol',
-        'dl', 'dt', 'dd',
-        'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'col', 'colgroup',
-        'b', 'i', 'u', 'em', 'wbr', 'strong', 'hr', 'cite', 'pre', 'code', 'font', 'big', 'small', 'blockquote', 'address',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'img', 'video', 'audio', 'embed', 'canvas',
-        'a', 'meta', 'link', 'iframe', 'frame'
-    ];
-
     /**
      *
      * @param {Object} options
@@ -64,22 +52,27 @@
                     // 去掉属性，保证接下来处理的是干净的标签
                     text = text.replace(/<(\w+) [^>]+>/gi, '<$1>');
 
-                    var emptyTag = /<(\w+)>\s*<\/\1>/;
+                    // 只支持 div br p
+                    text = text.replace(/<\/?(\w+)>/g, function ($0) {
+                        $0 = $0.toLowerCase();
+
+                        var tag;
+                        if ($0.indexOf('/') === 1) {
+                            tag = $0.slice(2, -1);
+                        }
+                        else {
+                            tag = $0.slice(1, -1);
+                        }
+
+                        return tag === 'div' || tag === 'br' || tag === 'p'
+                            ? $0
+                            : '';
+
+                    });
 
                     // 去掉空标签
-                    while (emptyTag.test(text)) {
-                        text = text.replace(emptyTag, '');
-                    }
-
-                    // 去掉不支持的标签
-                    unsupportedPasteTags.forEach(
-                        function (tag) {
-                            text = text.replace(
-                                new RegExp('</?' + tag + '>', 'gi'),
-                                ''
-                            );
-                        }
-                    );
+                    text = text.replace(/<div>\s*<\/div>/, '<br>');
+                    text = text.replace(/<p>\s*<\/p>/, '<br>');
 
                     if (text) {
                         var div = document.createElement('div');
