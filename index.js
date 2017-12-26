@@ -258,8 +258,17 @@
         getContent: function () {
             var content = this.element.innerHTML;
             if (content) {
-                content = content.replace(
+                content = content
+                .replace(
                     / style="[^"]+"/g,
+                    ''
+                )
+                .replace(
+                    /<div>\s*<\/div>/g,
+                    ''
+                )
+                .replace(
+                    new RegExp(EMPTY_VALUE, 'g'),
                     ''
                 );
             }
