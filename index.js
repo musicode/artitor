@@ -75,8 +75,8 @@
                     pasteReadHolder = document.createElement('div');
                     pasteReadHolder.style.cssText = 'position: absolute;top: 0; left: 0;opacity: 0;';
                     pasteReadHolder.contentEditable = true;
-                    bodyElement.appendChild(pasteReadHolder);
                 }
+                bodyElement.appendChild(pasteReadHolder);
 
                 var range = document.createRange();
                 range.setStart(pasteReadHolder, 0);
