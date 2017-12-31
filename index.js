@@ -182,7 +182,7 @@
 
         constructor: Artitor,
 
-        destory: function () {
+        destroy: function () {
             this.element.removeEventListener('keydown', this.onKeydown);
             this.element.removeEventListener('paste', this.onPaste);
             this.element.removeEventListener('input', this.onInput);
