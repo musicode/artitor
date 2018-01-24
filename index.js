@@ -260,11 +260,7 @@
             if (content) {
                 content = content
                 .replace(
-                    / style="[^"]+"/g,
-                    ''
-                )
-                .replace(
-                    /<div>\s*<\/div>/g,
+                    / style="[^"]*"/g,
                     ''
                 )
                 .replace(
