@@ -262,10 +262,6 @@
                 .replace(
                     / style="[^"]*"/g,
                     ''
-                )
-                .replace(
-                    new RegExp(EMPTY_VALUE, 'g'),
-                    ''
                 );
             }
             return content;
