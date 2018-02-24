@@ -328,6 +328,9 @@
   </style>
 </head>
 <body>
+  <button>
+      插图
+  </button>
   <div id="editor" contenteditable="true" autocomplete="off"></div>
 
   <script src="./index.js"></script>
@@ -337,6 +340,11 @@
           element: document.getElementById('editor'),
           placeholder: '请输入...',
       });
+
+      document.querySelector('button').onclick = function () {
+          editor.insertLoading('1', 'https://wwc.alicdn.com/avatar/getAvatar.do?userId=89609681&width=100&height=100&type=sns');
+          editor.insertImage('1', 'https://wwc.alicdn.com/avatar/getAvatar.do?userId=89609681&width=100&height=100&type=sns');
+      };
 
   </script>
 </body>

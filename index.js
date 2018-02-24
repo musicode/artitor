@@ -3,6 +3,8 @@
     var NODE_TYPE_ELEMENT = 1;
     var NODE_TYPE_TEXT = 3;
 
+    var KEY_CODE_BACKSPACE = 8;
+
     var KEY_CODE_ENTER = 13;
 
     var EMPTY_VALUE = '\u200B';
@@ -50,6 +52,21 @@
                         document.createTextNode(''),
                         true
                     );
+                }
+                else if (keyCode === KEY_CODE_BACKSPACE) {
+                    var selection = me.getSelection();
+                    var startContainer = selection.startContainer;
+                    if (me.inEmptyNode(selection)) {
+                        var previousSibling = startContainer.previousSibling;
+                        if (previousSibling
+                          && (previousSibling.tagName === 'IMG' || previousSibling.tagName === 'BR')
+                        ) {
+                            event.preventDefault();
+                            previousSibling.parentNode.removeChild(
+                                previousSibling
+                            );
+                        }
+                    }
                 }
             }
         );
@@ -284,6 +301,13 @@
             this.element.setAttribute('placeholder', placeholder);
         },
 
+        inEmptyNode: function (selection) {
+            var startContainer = selection.startContainer;
+            return selection.collapsed
+                && startContainer.nodeType === NODE_TYPE_TEXT
+                && startContainer.nodeValue === EMPTY_VALUE;
+        },
+
         insertNode: function (node, isBreakline) {
             var me = this;
             var selection = me.getSelection();
@@ -307,10 +331,7 @@
             var textNode;
 
             var startContainer = selection.startContainer;
-            if (selection.collapsed
-                && startContainer.nodeType === NODE_TYPE_TEXT
-                && startContainer.nodeValue === EMPTY_VALUE
-            ) {
+            if (me.inEmptyNode(selection)) {
                 textNode = startContainer;
                 if (inTextNode) {
                     var currentNode = textNode.previousSibling;
