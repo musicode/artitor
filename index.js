@@ -285,7 +285,7 @@
         },
 
         setContent: function (content) {
-            var element = this.element
+            var element = this.element;
             if (!content) {
                 content = '<br>';
             }
