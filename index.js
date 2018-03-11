@@ -45,27 +45,40 @@
         element.addEventListener(
             'keydown',
             me.onKeydown = function (event) {
-                var keyCode = event.keyCode;
-                if (keyCode === KEY_CODE_ENTER) {
-                    event.preventDefault();
-                    me.insertNode(
-                        document.createTextNode(''),
-                        true
-                    );
-                }
-                else if (keyCode === KEY_CODE_BACKSPACE) {
+                if (event.keyCode === KEY_CODE_BACKSPACE) {
                     var selection = me.getSelection();
                     var startContainer = selection.startContainer;
-                    if (me.inEmptyNode(selection)) {
-                        var previousSibling = startContainer.previousSibling;
-                        if (previousSibling
-                          && (previousSibling.tagName === 'IMG' || previousSibling.tagName === 'BR')
-                        ) {
-                            event.preventDefault();
-                            previousSibling.parentNode.removeChild(
-                                previousSibling
-                            );
+                    var endContainer = selection.endContainer;
+                    var startOffset = selection.startOffset;
+                    var previousSibling = false;
+
+                    if (selection.collapsed) {
+                      if (startContainer.nodeType === NODE_TYPE_TEXT) {
+                        if (startContainer.nodeValue === EMPTY_VALUE) {
+                          previousSibling = startContainer.previousSibling;
                         }
+                        else if (endContainer.nodeType === NODE_TYPE_TEXT
+                          && (startOffset === 0
+                            || (startOffset === 1 && startContainer.nodeValue[ 0 ] === EMPTY_VALUE)
+                          )
+                        ) {
+                          if (startContainer.previousSibling) {
+                            previousSibling = startContainer.previousSibling;
+                          }
+                          else {
+                            previousSibling = startContainer.parentNode.previousSibling;
+                          }
+                        }
+                      }
+                    }
+
+                    if (previousSibling
+                      && (previousSibling.tagName === 'IMG' || previousSibling.tagName === 'BR')
+                    ) {
+                        event.preventDefault();
+                        previousSibling.parentNode.removeChild(
+                            previousSibling
+                        );
                     }
                 }
             }
