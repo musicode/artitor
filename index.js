@@ -235,8 +235,13 @@
         getSelection: function () {
             var selection = window.getSelection();
             if (selection.rangeCount) {
-                return selection.getRangeAt(0);
+                var range = selection.getRangeAt(0);
+                if (this.element.contains(range.startContainer)) {
+                    return range;
+                }
             }
+            this.focus();
+            return this.getSelection();
         },
 
         /**
@@ -324,11 +329,6 @@
         insertNode: function (node, isBreakline) {
             var me = this;
             var selection = me.getSelection();
-
-            if (!selection) {
-                me.focus();
-                selection = me.getSelection();
-            }
 
             var deleteSelected = function () {
                 if (!inTextNode && me.getContent() === '<br>') {
