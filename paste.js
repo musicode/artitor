@@ -8,19 +8,34 @@
  * 3. 从这个元素读取内容
  */
 
+const BOLD_TAG = 'b'
+
+const BOLD_ALIAS_TAG = 'strong'
+
+const ITALIC_TAG = 'i'
+
+const ITALIC_ALIAS_TAG = 'em'
+
 /**
  * 字符串不好操作的元素
  *
  * @type {Array}
  */
-const COMPLEX_TAGS = [ 'noscript', 'script', 'video', 'audio', 'object', 'img', 'style', 'embed', 'form' ]
+const COMPLEX_TAGS = [ 'noscript', 'script', 'iframe', 'meta', 'link', 'video', 'audio', 'object', 'img', 'style', 'embed', 'form' ]
 
 /**
  * 支持的标签列表
  *
  * @type {Array}
  */
-const SUPPORTED_TAGS = [ 'div', 'p', 'br', 'strong', 'b', 'em', 'i', 'strike', 'u' ]
+const SUPPORTED_TAGS = [ 'div', 'p', 'br', 'strike', 'u', BOLD_TAG, BOLD_ALIAS_TAG, ITALIC_TAG, ITALIC_ALIAS_TAG ]
+
+/**
+ * 块级标签
+ *
+ * @type {Array}
+ */
+const BLOCK_TAGS = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'div', 'header', 'footer' ]
 
 export default function (onRead) {
 
@@ -28,6 +43,7 @@ export default function (onRead) {
 
   return function () {
 
+    // 可能存在异步读取粘贴内容的情况
     if (pasteReadTimer) {
       clearTimeout(pasteReadTimer)
       pasteReadTimer = null
@@ -75,21 +91,28 @@ export default function (onRead) {
           /<(\/?)(\w+)>/g,
           function ($0, $1, $2) {
             $2 = $2.toLowerCase()
+            if (BLOCK_TAGS.indexOf($2) >= 0) {
+              $2 = 'p'
+            }
+            else if ($2 === BOLD_ALIAS_TAG) {
+              $2 = BOLD_TAG
+            }
+            else if ($2 === ITALIC_ALIAS_TAG) {
+              $2 = ITALIC_TAG
+            }
             return SUPPORTED_TAGS.indexOf($2) >= 0 ? `<${$1}${$2}>` : ''
           }
         )
 
         // 这么一波操作下来还剩有内容，交给外部处理
         if (content) {
-          let div = document.createElement('div')
-          div.innerHTML = content
-          onRead(div.childNodes)
+          onRead(content)
         }
 
     }
 
     let readContent = function () {
-      if (pasteReadHolder.textContent) {
+      if (pasteReadHolder.innerHTML) {
         processContent()
         document.body.removeChild(pasteReadHolder)
       }
